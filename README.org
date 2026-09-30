@@ -82,6 +82,20 @@ installed using =brew=. The same works with =cask=, =tap=, =brewfile=, and
 - services: [postgresql, redis]
 #+END_SRC
 
+*** Conditional blocks
+
+Any directive accepts an =if= key to gate the whole block behind a shell
+condition. The block is skipped when the command exits non-zero, matching
+dotbot's built-in =link= semantics. The directive's normal payload must be the
+only other key.
+
+#+BEGIN_SRC yaml
+- brewfile:
+    if: '[ -z "$DOTFILES_SERVER" ]'
+    brewfile:
+      - Brewfile
+#+END_SRC
+
 * Support
 
 If you enjoy this project, you can support its development via [[https://github.com/sponsors/d12frosted][GitHub Sponsors]] or [[https://www.patreon.com/d12frosted][Patreon]].

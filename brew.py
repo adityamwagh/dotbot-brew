@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 import dotbot
+from dotbot.util import shell_command
 
 class Brew(dotbot.Plugin):
     _brewDirective = "brew"
@@ -20,6 +21,17 @@ class Brew(dotbot.Plugin):
         return directive in (self._tapDirective, self._brewDirective, self._caskDirective, self._brewFileDirective, self._servicesDirective)
 
     def handle(self, directive, data):
+        if isinstance(data, dict) and "if" in data:
+            condition = data["if"]
+            if not self._test_success(condition):
+                self._log.info(f"Skipping {directive} block: condition '{condition}' failed")
+                return True
+            remaining = {k: v for k, v in data.items() if k != "if"}
+            if len(remaining) != 1:
+                raise ValueError(
+                    f"Brew directive '{directive}' with 'if:' needs exactly one payload key"
+                )
+            data = next(iter(remaining.values()))
         if directive == self._tapDirective:
             self._bootstrap_brew()
             return self._tap(data)
@@ -40,6 +52,9 @@ class Brew(dotbot.Plugin):
             self._bootstrap_brew()
             return self._start_services(data)
         raise ValueError(f'Brew cannot handle directive {directive}')
+
+    def _test_success(self, command):
+        return shell_command(command, cwd=self._context.base_directory()) == 0
 
     def _tap(self, tap_list):
         cwd = self._context.base_directory()
