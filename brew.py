@@ -148,10 +148,10 @@ class Brew(dotbot.Plugin):
         else:
             self._log.info("Homebrew not found. Installing...")
             link = "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-            # We use /bin/bash explicitly as the installer requires it
-            cmd = f'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL {link})"'
-            subprocess.call(cmd, shell=True, cwd=self._context.base_directory(),
-            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # Run interactively so sudo can prompt for the password on the TTY.
+            # Left unattended with no TTY it still completes without prompting.
+            cmd = f'/bin/bash -c "$(curl -fsSL {link})"'
+            subprocess.call(cmd, shell=True, cwd=self._context.base_directory())
 
             # Resolve path again after installation
             self._brew_path = self._get_brew_path()
